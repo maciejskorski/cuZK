@@ -1,12 +1,20 @@
+![nVIDIA](https://img.shields.io/badge/nVIDIA-%2376B900.svg?style=for-the-badge&logo=nVIDIA&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 # cuZK: An Efficient GPU Implemetation of zkSNARK
 
-This library is an efficient GPU implemetation of zkSNARK. It contains source code of the paper **cuZK: Accelerating Zero-Knowledge Proof with A Faster Parallel Multi-Scalar Multiplication Algorithm on GPUs** submitted to TCHES 2023.
+This library is an efficient GPU implemetation of zkSNARK. It contains source code of the paper **cuZK: Accelerating Zero-Knowledge Proof with A Faster Parallel Multi-Scalar Multiplication Algorithm on GPUs** published at TCHES 2023.
+
+> Note: The contributions of this fork are:
+> * improved reproducibility and scalability: using Docker for building, reduced memory footprint, tested various GPUs 
+> * introduced profiling of time/energy performance
 
 ## License
 
 This library is licensed under the Apache License Version 2.0 and MIT licenses.
 
 ## Requirements
+
+To compile and run the code you **only need a GPU with NVIDIA drivers installed**; the CUDA Toolkit with compiling and runtime tools will be supplied by Docker.
 
 The original experiments were accompolished in the following setup:
 
@@ -18,7 +26,8 @@ The original experiments were accompolished in the following setup:
 
 ## Build / Develop
 
-I recommend to work under the appropriate [NVIDIA CUDA image](https://hub.docker.com/r/nvidia/cuda/tags) which should match the installed NVIDIA drivers (check `nvidia-smi`). The image contains necessary CUDA tools.
+Select the appropriate [NVIDIA CUDA image](https://hub.docker.com/r/nvidia/cuda/tags) which contains building tools.
+Check the [compatibility of installed NVIDIA drivers](https://docs.nvidia.com/deploy/cuda-compatibility/#abstract).
 
 Start the container mounting the working directory with the github source code:
 ```console
@@ -30,7 +39,7 @@ docker run -d \
    --privileged \
    nvidia/cuda:11.7.1-devel-ubuntu20.04
 ```
-Within the running container, install `git` and `libgmp3-dev`:
+Inside the running container, install `git` and `libgmp3-dev`:
 ```console
 apt-get update
 apt-get install -y git libgmp3-dev
@@ -49,7 +58,33 @@ root@7816e1643c2a:/home/cuZK/test# make
 
 > NOTE: The original code reserves too much of RAM. This can be adjusted inside the function `multi_init_params`.
 
-## Run
+## Profiling
+
+Advanced profiling can be done with [NVIDIA Management Library](https://developer.nvidia.com/nvidia-management-library-nvml). 
+The querying API should be used around the code piece of interest; the example below measures the energy consumption:
+```cpp
+   nvmlInit();
+   unsigned long long energy_start, energy_end, energy_elapsed;
+   nvmlDeviceGetTotalEnergyConsumption(device, &energy_start);
+   // code to profile ...
+   nvmlDeviceGetTotalEnergyConsumption(device, &energy_end);
+   energy_elapsed = energy_end - energy_start;
+   nvmlShutdown();
+```
+The `nvml` library should be included in the source code with `#include <nvml.h>` and linked at compilation time with `-l nvidia-ml` option.
+
+Performance depends on the clock frequency; the range of allowed frequencies can be checked with `nvidia-smi -q -d SUPPORTED_CLOCKS`
+and the memory/graphics clocks can be adjusted with `nvidia-smi -ac $mem,$freq`. 
+
+See the [script profiling the MSM algorithm under a range of frequencies](./test/energy_benchmark.sh), and a [sample Python script to process results](./test/energy_benchmark.py).
+
+
+ Here are results obtained on Tesla V100-SXM2-16GB:
+
+![Performance and energy consumption of MSM](./data/performance_MSM_V100.png)
+
+
+## Run Original Code
 
 To run a test of an MSM of `2^20` scale and EC points on the BLS12-381 curve, run:
 ```
@@ -87,7 +122,7 @@ cd test/BLS377
 cargo bench
 ```
 
-## Rusults
+## Original Rusults
 
 Here are a selection of the results tested under NVIDIA V100 GPU card with BLS12-381 curve. More results can be found in the paper cuZK.
 

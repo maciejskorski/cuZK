@@ -211,32 +211,31 @@ void* multi_MSM(void* msm)
 
 
     printf( "testing.. \n");
-    unsigned long long energy_start, energy_end;
-    nvmlDevice_t device;
     nvmlInit();
-    nvmlDeviceGetHandleByIndex(it->device_id, &device);
-    nvmlDeviceGetTotalEnergyConsumption(device, &energy_start);
+    nvmlDevice_t device_handle;
+    unsigned long long energy_start, energy_end;
+    long long energy_total;
+    cudaEvent_t time_start, time_stop;
+    float time_total;
+    nvmlDeviceGetHandleByIndex(0, &device_handle);
+    cudaEventCreate( &time_start);
+    cudaEventCreate( &time_stop);    
 
-    cudaEvent_t eventMSMStart, eventMSMEnd;
-    cudaEventCreate( &eventMSMStart);
-    cudaEventCreate( &eventMSMEnd);
-    cudaEventRecord( eventMSMStart, 0);
-    cudaEventSynchronize(eventMSMStart);
-
-    for(size_t i=0; i<1; i++)
+    for(size_t i=0; i<5; i++)
     {
+        nvmlDeviceGetTotalEnergyConsumption(device_handle, &energy_start);
+        cudaEventRecord( time_start, 0);
         it->res = libff::p_multi_exp_faster_multi_GPU_host<libff::G1<ppT>, libff::Fr<ppT>, libff::multi_exp_method_naive_plain>(it->mp->vg, it->mp->vf, it->ip->instance, it->ip->g1_instance, 512, 32);
         cudaDeviceSynchronize();
+
+        cudaEventRecord( time_stop, 0);
+        cudaEventSynchronize(time_stop);
+        cudaEventElapsedTime( &time_total, time_start, time_stop );
+        nvmlDeviceGetTotalEnergyConsumption(device_handle, &energy_end);
+        energy_total = energy_end - energy_start;
+        printf( "Thread=%d,Time=%3.5f ms, Energy=%llu mJ\n", it->device_id, time_total, energy_total );
     }
 
-    cudaEventRecord( eventMSMEnd, 0);
-    cudaEventSynchronize(eventMSMEnd);
-    float   TimeMSM;
-    cudaEventElapsedTime( &TimeMSM, eventMSMStart, eventMSMEnd );
-    unsigned long long EnergyMSM;
-    nvmlDeviceGetTotalEnergyConsumption(device, &energy_end);
-    EnergyMSM = energy_end - energy_start;
-    printf( "Thread %lu for MSM, Time: %3.5f ms, Energy: %llu mJ\n", it->device_id, TimeMSM, EnergyMSM );
     nvmlShutdown();
     return 0;
 }

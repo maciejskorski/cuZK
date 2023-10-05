@@ -52,7 +52,7 @@ and then run `make` (it will take a while!)
 root@3ed8c7a4de3e:/home/test# make
 ...
 ```
-Finally, run the benchmark (adjust the output file and (optionally) the logic inside the script)
+Finally, run the benchmark (adjust the scope of the script)
 ```console
 ./energy_benchmark.sh
 ...

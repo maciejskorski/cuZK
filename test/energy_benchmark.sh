@@ -8,7 +8,8 @@ echo "Param,Mem,Graphics,Energy,Time" >>energy.log
 IFS=$'\n'
 for n in 20 21 22; do
     # loop over clock frequencies
-    for mem in 877; do
+    # NOTE: adjust the memory frequency to your device, e.g. 5001 is default for Tesla T4
+    for mem in 5001; do
         for freq in $(nvidia-smi -q -d SUPPORTED_CLOCKS | awk '/Graphics.*MHz/{ print $3 }'); do
             # change GPU clock
             nvidia-smi -ac $mem,$freq

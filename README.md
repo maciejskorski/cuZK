@@ -26,33 +26,38 @@ The original experiments were accompolished in the following setup:
 
 ## Build / Develop
 
-Select the appropriate [NVIDIA CUDA image](https://hub.docker.com/r/nvidia/cuda/tags) which contains building tools.
-Check the [compatibility of installed NVIDIA drivers](https://docs.nvidia.com/deploy/cuda-compatibility/#abstract).
-
-Start the container mounting the working directory with the github source code:
+The [Docker image](./Dockerfile) provides the necessary software by extending the appropriate [NVIDIA CUDA image](https://hub.docker.com/r/nvidia/cuda/tags). Build it with
+```bash
+docker build -t cuzk:dev .
+```
+Then, start the container mounting the repo directory:
 ```console
 docker run -d \
    -it \
-   --name nvidia-cuda \
+   --name cuzk \
    --runtime=nvidia \
    --mount type=bind,source=$(pwd),target=/home \
    --privileged \
-   nvidia/cuda:11.7.1-devel-ubuntu20.04
+   cuzk:dev
 ```
-Inside the running container, install `git` and `libgmp3-dev`:
-```console
-apt-get update
-apt-get install -y git libgmp3-dev
-```
-Within the `cuZK/test` directory, adjust the compilation scope in the headers of `Makefile`:
+and enter the container (e.g. with the VS Code plugin or via the command line `docker exec -it -w /home cuzk bash`).
+
+Inside the `cuZK/test` directory, adjust the compilation scope in the headers of `Makefile`:
 ```Makefile
 # cuZK/test/Makefile
-all: msma msmb  # limit the compilation scope to selected files
+all: msmb  # limit the compilation scope to selected files
 ```
 and then run `make` (it will take a while!)
 ```console
-root@7816e1643c2a:/home/cuZK/test# make
+root@3ed8c7a4de3e:/home/test# make
+...
 ```
+Finally, run the benchmark (adjust the output file and (optionally) the logic inside the script)
+```console
+./energy_benchmark.sh
+...
+```
+
 
 > NOTE:  See also more on [compute capability](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capability) in [the documentation](https://developer.nvidia.com/cuda-gpus#compute).
 

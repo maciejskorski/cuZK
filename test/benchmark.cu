@@ -259,7 +259,7 @@ void* multi_MSM(void* msm)
                 energy_total=energy_end-energy_start;
                 CHECK_LAST_CUDA_ERROR();
                 size_t len = log2( (it->mp->vg).size_host() );
-                printf("Thread=%d,Param=%d,Freq=%d,Time=%f [ms],Energy=%lld [mJ]\n", it->device_id, len, 0, time_total, energy_total);
+                printf("Thread=%d,Param=%d,Freq=%d,Time=%f [ms],Energy=%lld [mJ]\n", it->device_id, len, freq, time_total, energy_total);
             };
         };
     };

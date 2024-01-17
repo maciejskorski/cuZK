@@ -370,7 +370,7 @@ int main(int argc, char* argv[])
     libff::G1<bls12_381_pp_host> hg1[deviceCount];
     for(size_t i=0; i < deviceCount; i++)
     {
-        printf( "Device %d: Transfering to Host... \n", i);
+        printf( "Device %d: Transferring to Host... \n", i);
         cudaSetDevice(i);
         D2H<bls12_381_pp_host, bls12_381_pp>(&hg1[i], msm[i].res, &hip.h_g1_instance);
     }

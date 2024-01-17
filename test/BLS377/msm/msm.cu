@@ -276,7 +276,7 @@ void pippenger_faster_2(affine_t* points, size_t npoints,
     if(s >= npoints) s = npoints;
     if(e >= npoints) e = npoints;
 
-    /* Adjust 's' and 'e' to garantee that different threads will not put points into the same bucket. */
+    /* Adjust 's' and 'e' to guarantee that different threads will not put points into the same bucket. */
     if(s != 0)
     {
         while(s < npoints && wval_out[ptr + s] == wval_out[ptr + s - 1])
